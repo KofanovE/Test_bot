@@ -13,6 +13,7 @@ from sklearn.linear_model import LinearRegression
 """
 
 
+
 def PrepareDF(DF):                                                     # Функція формування повного датафрейму
     ohlc = DF
     ohlc.columns = ["date", "open", "high", "low", "close", "volume"]  # Зміна назв колонок датафрейму
