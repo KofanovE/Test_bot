@@ -29,8 +29,7 @@ def main():
 
     df = pd.read_csv('data_eth_1.csv', header=None, names = ['timestamp', 'open', 'high', 'low', 'close', 'volume', '6', '7', '8', '9', '10', '11' ] )
     df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
-    df = df[::-1]
-    print(df)
+    # df = df[::-1]
     prepared_df = PrepareDF(df)     # Формування датафрейму однохвилинних свічок [timestamp, open, high, low, close, volume]
 
 
@@ -62,19 +61,12 @@ def main():
 
 
     for i in range(4, lend-1):                                  # Для кожної строки датафрейму, починаючи з 4-ї
-        prepared_df.at[i, 'earn'] = deal                        # Первична 0-ва ініціалізація прибутку
+        prepared_df.at[i, 'earn'] = deal                        # ініціалізація прибутку
         if position > 0:                                        # Якщо величина позиції більше 0:
             #long
-            if prepared_df['close'][i] < stop_prise:            # Якщо актуальний прайс менше межі стоплосу, то стоп-лос
-                # В даному випадку, це перша помилка, яку слід виправити.
-                # Свічка ціни має відкриття, закриття, макс, і мін.
-                # В данному випадку замість закриття має бути значення мін даної хвилинної свічки
-
+            if prepared_df['low'][i] < stop_prise:            # Якщо актуальний прайс менше межі стоплосу, то стоп-лос
                 #stop_loss
-                deal = deal - (open_price-prepared_df['close'][i]) # Визначення величини збитку: відкриття-закриття
-                # Здається, тут друга помилка: відкриття - закриття треба помножити на величину позиції
-
-
+                deal -= (open_price-prepared_df['close'][i])*abs(position) # Визначення величини збитку: відкриття-закриття
                 position = 0                                          # Закриття позиції
                 prepared_df.at[i, 'deal_c'] = prepared_df['close'][i] # запис у колонку закритих позицій
             else:                                                   # Якщо актуальний прайс не менше межі стоплосу, то
@@ -82,22 +74,18 @@ def main():
                 for j in range(0, len(temp_arr) - 1):               # Для кожного шагу ціни в temp_arr
                     delta = temp_arr[j][0]                          # Поточний профітний крок ціни delta
                     contracts = temp_arr[j][1]                      # Поточний профітний крок позиції
-                    if prepared_df['close'][i] > open_price + delta:                        # Якщо поточна ціна більше ціни відкриття + поточний профітний крок ціни delta
-                        # Думаю, тут криється наступна помилка, потрібно порівнювати не з закриттям, а з максимумом
-
+                    if prepared_df['high'][i] > open_price + delta:                        # Якщо поточна ціна більше ціни відкриття + поточний профітний крок ціни delta
                         prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]               # Запис ціни неповного закриття поточного профітного кроку
                         position = position - contracts                                     # Від позиції віднімається поточний профітний крок
-                        deal = deal + (prepared_df['close'][i] - open_price)*contracts      # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
-                        # В даному випадку, на відміну від строки 74, розраховується правильно
-
+                        deal += (prepared_df['close'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
                         del proffit_array[0]                                                # Видалення першого досягнутого профітного кроку
 
 
         elif position < 0:                                                                  # Все теж саме, але, коли відкита позиція в шорт
             #short
-            if prepared_df['close'][i] > stop_prise:
+            if prepared_df['high'][i] > stop_prise:
                 #stop loss
-                deal = deal - prepared_df['close'][i] - open_price
+                deal -= (prepared_df['close'][i] - open_price)*abs(position)
                 position = 0
                 prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
             else:
@@ -105,18 +93,18 @@ def main():
                 for j in range(0, len(temp_arr)-1):
                     delta = temp_arr[j][0]
                     contracts = temp_arr[j][1]
-                    if prepared_df['close'][i] < open_price - delta:
+                    if prepared_df['low'][i] < open_price - delta:
                         prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
                         position = position + contracts
-                        deal = deal + (open_price - prepared_df['close'][i]) * contracts
+                        deal += (open_price - prepared_df['close'][i]) * contracts
                         del proffit_array[0]
 
 
         else:                                                                       # Якщо відкритої позиції не знайдено
             if prepared_df['lcc'][i-1] != None:                                     # Якщо на даній свічі в стовпці впадина відкрита позиція
                 #Long
-                if prepared_df['position_in_channel'][i-1] < 0.5:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
-                    if prepared_df['slope'][i-1] < -20:                             # ...та якщо кут нахилу менше -20 (тут є питання ->)
+                if prepared_df['position_in_channel'][i-1] < 0.3:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
+                    if prepared_df['slope'][i-1] > 20:                             # ...та якщо кут нахилу менше -20 (тут є питання ->)
                         # -> .. як я розумію, лонг відкривається, якщо позиція в нижній частині каналу, ок
                         # але, чому від'ємний кут нахилу? тренд має починати рости, і ми заходимо..
                         prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]       # В колонку відкриття записується дана свічка
@@ -126,8 +114,8 @@ def main():
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
         if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці вершина відкрита позиція
                 # Short
-                if prepared_df['position_in_channel'][i-1] > 0.5:
-                    if prepared_df['slope'][i - 1] > 20:
+                if prepared_df['position_in_channel'][i-1] > 0.7:
+                    if prepared_df['slope'][i - 1] < 20:
                         prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]
                         proffit_array = copy.copy(eth_proffit_array)
                         position = -10
