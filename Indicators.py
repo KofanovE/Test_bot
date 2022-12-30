@@ -7,17 +7,12 @@ import copy
 from sklearn.linear_model import LinearRegression
 
 
-"""
-В PrepareDF функції планується добавити стовпці мін та макс каналу з середніх значеннь з історії,
-позиція в каналі та кут нахилу тренду
-"""
+def PrepareDF(DF):
+    # Функція формування повного датафрейму
 
-
-
-def PrepareDF(DF):                                                     # Функція формування повного датафрейму
     ohlc = DF
-    ohlc.columns = ["date", "open", "high", "low", "close", "volume"]  # Зміна назв колонок датафрейму
-    ohlc = ohlc.set_index('date')
+    ohlc.columns = ["date", "open", "high", "low", "close", "volume"]   # Зміна назв колонок датафрейму
+    ohlc = ohlc.set_index('date')                                       # Установка стовпчика date в якості індексу датафрейму
     df = indATR(ohlc, 14).reset_index()
     df['slope'] = indSlope(df['close'], 5)
     df['chanel_max'] = df['high'].rolling(10).max()
@@ -30,6 +25,9 @@ def PrepareDF(DF):                                                     # Фун�
 
 # True Range and Average True Range indicator
 def indATR(source_DF, n):
+    # ATR - Середній справжній діапазон.
+    # Індікатор призначений для виявлення поточної волатильності інструменту.
+
     """
     TR = max[(H-L), |H-Cp|, |L-Cp|]
     ATR = 1/n * sum(TR)
@@ -39,25 +37,25 @@ def indATR(source_DF, n):
     L: current Low
     Cp: previous close
     """
-    df = source_DF.copy()
-    df['H-L'] = abs(df['high']-df['low'])
-    df['H-PC'] = abs(df['high']-df['close'].shift(1))
+    df = source_DF.copy()                                               # копіювання та прсвоєння вхідного датафрейму
+    df['H-L'] = abs(df['high']-df['low'])                               # розрахунок, згідно опису.
+    df['H-PC'] = abs(df['high']-df['close'].shift(1))                   # shift зміщує даний показник на задану кількість позицій
     df['L-PC'] = abs(df['low']-df['close'].shift(1))
-    df['TR'] = df[['H-L','H-PC','L-PC']].max(axis=1,skipna=False)
-    df['ATR'] = df['TR'].rolling(n).mean()
-    df_temp = df.drop(['H-L','H-PC','L-PC'],axis=1)
+    df['TR'] = df[['H-L', 'H-PC', 'L-PC']].max(axis=1, skipna=False)    # axis=1 (колонки) skipna=False (добавляє значення NaN в операцію)
+    df['ATR'] = df['TR'].rolling(n).mean()                              # rolling(n).mean() виявляє середнє з n значень по всьому датафрейму
+    df_temp = df.drop(['H-L', 'H-PC', 'L-PC'], axis=1)                  # видалення непотрібних стовбців
     return df_temp
 
 
 def indSlope(series, n):
+    # Функція для визначення кута нахилу тренда.
+
     array_sl = [j * 0 for j in range(n-1)]
     for j in range(n, len(series)+1):
         y = series[j-n:j]
         x = np.array(range(n))
         x_sc = (x - x.min()) / (x.max() - x.min())
         y_sc = (y - y.min()) / (y.max() - y.min())
-
-        # !!! Спробувати та порівняти інші варіанти
         x_sc = sm.add_constant(x_sc)
         model = sm.OLS(y_sc, x_sc)
         results = model.fit()

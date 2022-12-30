@@ -10,11 +10,6 @@ import matplotlib as mpl
 from Indicators import *
 
 
-"""
-В PrepareDF функції планується добавити стовпці мін та макс каналу з середніх значеннь з історії, 
-позиція в каналі та кут нахилу тренду
-"""
-
 def main():
 
     pd.set_option('display.max_columns', None)  #форматування відображення DataFrame
@@ -101,7 +96,7 @@ def main():
 
 
         else:                                                                       # Якщо відкритої позиції не знайдено
-            if prepared_df['lcc'][i-1] != None:                                     # Якщо на даній свічі в стовпці впадина відкрита позиція
+            if prepared_df['lcc'][i-1] != None:                                     # Якщо на даній свічі в стовпці "впадина" відкрита позиція
                 #Long
                 if prepared_df['position_in_channel'][i-1] < 0.3:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
                     if prepared_df['slope'][i-1] > 20:                             # ...та якщо кут нахилу менше -20 (тут є питання ->)
@@ -112,7 +107,7 @@ def main():
                         position = 10                                               # Відкривається позиція 10 в лонг
                         open_price = prepared_df['close'][i]                        # Запис змінної відкриття
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
-        if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці вершина відкрита позиція
+        if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.7:
                     if prepared_df['slope'][i - 1] < 20:
@@ -135,7 +130,7 @@ def main():
     aa = prepared_df[0:1000]
     aa = aa.reset_index()
 
-    labels = ['close', 'deal_o', 'deal_c'] #, 'channel_max', 'channel_min'
+    labels = ['close', 'deal_o', 'deal_c']
     labels_line = ['--', '*-', '*-', 'g-', 'r-']
 
     j = 0
@@ -157,7 +152,7 @@ def main():
     ax1.set_ylabel("Price")
     ax1.grid(True)
 
-    ax2.plot(x[0], aa['earn'], 'g-') #EMA
+    ax2.plot(x[0], aa['earn'], 'g-')
     ax3.plot(x[0], aa['position_in_channel'], '.-')
 
     ax2.grid(True)
