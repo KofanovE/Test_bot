@@ -22,7 +22,8 @@ def main():
     # url = f'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=ETH&market=USD&interval=5min&apikey=demo&datatype=csv'
     # df = pd.read_csv(url)
 
-    df = pd.read_csv('data_eth_1.csv', header=None, names = ['timestamp', 'open', 'high', 'low', 'close', 'volume', '6', '7', '8', '9', '10', '11' ] )
+    df = pd.read_csv('data_eth_1.csv', header=None, names=['timestamp', 'open', 'high', 'low', 'close', 'volume',
+                                                           '6', '7', '8', '9', '10', '11'])
     df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
     # df = df[::-1]
     prepared_df = PrepareDF(df)     # Формування датафрейму однохвилинних свічок [timestamp, open, high, low, close, volume]
@@ -98,7 +99,7 @@ def main():
         else:                                                                       # Якщо відкритої позиції не знайдено
             if prepared_df['lcc'][i-1] != None:                                     # Якщо на даній свічі в стовпці "впадина" відкрита позиція
                 #Long
-                if prepared_df['position_in_channel'][i-1] < 0.3:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
+                if prepared_df['position_in_channel'][i-1] < 0.4:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
                     if prepared_df['slope'][i-1] > 20:                             # ...та якщо кут нахилу менше -20 (тут є питання ->)
                         # -> .. як я розумію, лонг відкривається, якщо позиція в нижній частині каналу, ок
                         # але, чому від'ємний кут нахилу? тренд має починати рости, і ми заходимо..
@@ -109,8 +110,8 @@ def main():
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
         if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
-                if prepared_df['position_in_channel'][i-1] > 0.7:
-                    if prepared_df['slope'][i - 1] < 20:
+                if prepared_df['position_in_channel'][i-1] > 0.6:
+                    if prepared_df['slope'][i - 1] < -20:
                         prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]
                         proffit_array = copy.copy(eth_proffit_array)
                         position = -10
