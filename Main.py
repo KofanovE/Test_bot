@@ -35,11 +35,10 @@ def main():
     df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
     # df = df[::-1]
     prepared_df = PrepareDF(df)     # Формування датафрейму однохвилинних свічок [timestamp, open, high, low, close, volume]
+    lend = len(prepared_df)  # Змінна кількості строк у датафреймі
 
 
-
-    df_science = pd.DataFrame({'num' : [],
-                               'profit_deal' : [],
+    df_science = pd.DataFrame({'profit_deal' : [],                   # створення дослідницького датафрейму
                                'time_open' : [],
                                'price_open' : [],
                                'position_open' : [],
@@ -54,13 +53,14 @@ def main():
                                'slope_close' : [],
                                'profit' : []})
 
-    df_science = df_science.set_index('num')
+    num = 0                                                          # Змінна номеру строки в дослідницькому датафреймі
+
 
 
 
 
     # Добавлення колонок вершин high i low, якщо спрацювали відповідні індикатори
-    lend = len(prepared_df)                                         # Змінна кількості строк у датафреймі
+
     prepared_df['hcc'] = [None] * lend                              # Додавання колонок вершин і впадин
     prepared_df['lcc'] = [None] * lend
     for i in range(4, lend-1):                                      # Для всіх строк, починаючи з 4-ї добавляються значення в колонки вершин..
@@ -136,15 +136,16 @@ def main():
                         open_price = prepared_df['close'][i]                        # Запис змінної відкриття
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
 
-                        num = len(df_science['num'])
-                        df_science['num'].append(num)            # Cтворення нового запису в статистичний датафрейм з порядковим номером запису у стовбчик num
-                        df_science[num]['profit_deal'] = False
-                        df_science[num]['time_open'] = prepared_df['timestamp']
-                        df_science[num]['price_open'] = prepared_df['close'][i]
-                        df_science[num]['position_open'] = prepared_df['position_in_channel'][i-1]
-                        df_science[num]['slope_open'] = prepared_df['slope'][i-1]
-                        df_science[num]['price_min'] = prepared_df['close'][i]
-                        df_science[num]['price_max'] = prepared_df['close'][i]
+
+
+
+                        df_science.at[num, 'profit_deal'] = False
+                        df_science.at[num, 'time_open'] = prepared_df['timestamp']
+                        df_science.at[num, 'price_open'] = prepared_df['close'][i]
+                        df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
+                        df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
+                        df_science.at[num, 'price_min'] = prepared_df['close'][i]
+                        df_science.at[num, 'price_max'] = prepared_df['close'][i]
 
 
 
