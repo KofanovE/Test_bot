@@ -116,7 +116,7 @@ def main():
                         position = 10                                               # Відкривається позиція 10 в лонг
                         open_price = prepared_df['close'][i]                        # Запис змінної відкриття
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
-        if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
+            if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.6:
                     if prepared_df['slope'][i - 1] < -20:
