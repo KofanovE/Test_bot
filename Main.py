@@ -1,4 +1,5 @@
 import copy
+import glob
 
 import numpy as np
 import pandas as pd
@@ -22,8 +23,15 @@ def main():
     # url = f'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=ETH&market=USD&interval=5min&apikey=demo&datatype=csv'
     # df = pd.read_csv(url)
 
-    df = pd.read_csv('data_eth_1.csv', header=None, names=['timestamp', 'open', 'high', 'low', 'close', 'volume',
-                                                           '6', '7', '8', '9', '10', '11'])
+
+    data_files = glob.glob(r".\data_eth\*.csv", recursive=True) # механізм зчитування данних з декількох файлів з заданої директорії
+    cont = []
+    for i in range(len(data_files)):
+        df = pd.read_csv(data_files[i], header=None, names=['timestamp', 'open', 'high', 'low', 'close', 'volume',
+                                                       '6', '7', '8', '9', '10', '11'])
+        cont.append(df)
+    df = pd.concat(cont)
+
     df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
     # df = df[::-1]
     prepared_df = PrepareDF(df)     # Формування датафрейму однохвилинних свічок [timestamp, open, high, low, close, volume]
@@ -128,7 +136,7 @@ def main():
 
 
     # Visualization
-    aa = prepared_df[0:1000]
+    aa = prepared_df
     aa = aa.reset_index()
 
     labels = ['close', 'deal_o', 'deal_c']
