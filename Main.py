@@ -7,7 +7,7 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-
+from scipy.stats import trim_mean
 from Indicators import *
 
 
@@ -54,7 +54,8 @@ def main():
                                'profit' : []})
 
     num = 0                                                          # Змінна номеру строки в дослідницькому датафреймі
-
+    min_arr = []
+    max_arr = []
 
 
 
@@ -87,6 +88,16 @@ def main():
 
     for i in range(4, lend-1):                                  # Для кожної строки датафрейму, починаючи з 4-ї
         prepared_df.at[i, 'earn'] = deal                        # ініціалізація прибутку
+
+        if position != 0:
+            min_arr.append(prepared_df['low'][i])
+            max_arr.append(prepared_df['high'][i])
+            if df_science['price_min'][num] > prepared_df['low'][i]:
+                df_science.at[num, 'price_min'] = prepared_df['low'][i]
+            if df_science['price_max'][num] < prepared_df['high'][i]:
+                df_science.at[num, 'price_max'] = prepared_df['high'][i]
+
+
         if position > 0:                                        # Якщо величина позиції більше 0:
             #long
             if prepared_df['low'][i] < stop_prise:            # Якщо актуальний прайс менше межі стоплосу, то стоп-лос
@@ -104,7 +115,8 @@ def main():
                         position = position - contracts                                     # Від позиції віднімається поточний профітний крок
                         deal += (prepared_df['close'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
                         del proffit_array[0]                                                # Видалення першого досягнутого профітного кроку
-
+                        df_science.at[num, 'profit'] += contracts
+                        df_science.at[num, 'profit_deal'] = True
 
         elif position < 0:                                                                  # Все теж саме, але, коли відкита позиція в шорт
             #short
@@ -123,6 +135,19 @@ def main():
                         position = position + contracts
                         deal += (open_price - prepared_df['close'][i]) * contracts
                         del proffit_array[0]
+                        df_science.at[num, 'profit'] += contracts
+                        df_science.at[num, 'profit_deal'] = True
+
+            if position == 0:
+
+                df_science.at[num, 'time_close'] = prepared_df['date'][i]
+                df_science.at[num, 'price_close'] = prepared_df['close'][i]
+                df_science.at[num, 'position_close'] = prepared_df['position_in_channel'][i]
+                df_science.at[num, 'slope_close'] = prepared_df['slope'][i]
+                df_science.at[num, 'min_mean'] = trim_mean(min_arr, 0.1)
+                df_science.at[num, 'max_mean'] = trim_mean(max_arr, 0.1)
+                num += 1
+
 
 
         else:                                                                       # Якщо відкритої позиції не знайдено
@@ -137,15 +162,14 @@ def main():
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
 
 
-
-
                         df_science.at[num, 'profit_deal'] = False
-                        df_science.at[num, 'time_open'] = prepared_df['timestamp']
+                        df_science.at[num, 'time_open'] = prepared_df['date'][i]
                         df_science.at[num, 'price_open'] = prepared_df['close'][i]
                         df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
                         df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
                         df_science.at[num, 'price_min'] = prepared_df['close'][i]
                         df_science.at[num, 'price_max'] = prepared_df['close'][i]
+                        df_science.at[num, 'profit'] = 0
 
 
 
@@ -159,7 +183,17 @@ def main():
                         open_price = prepared_df['close'][i]
                         stop_prise = prepared_df['close'][i] * 1.01
 
-    print(prepared_df)
+
+                        df_science.at[num, 'profit_deal'] = False
+                        df_science.at[num, 'time_open'] = prepared_df['date'][i]
+                        df_science.at[num, 'price_open'] = prepared_df['close'][i]
+                        df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
+                        df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
+                        df_science.at[num, 'price_min'] = prepared_df['close'][i]
+                        df_science.at[num, 'price_max'] = 0
+
+    # print(prepared_df)
+    print(df_science)
 
 
     # prepared_df[0:100][['slope']].plot()
