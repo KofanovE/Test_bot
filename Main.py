@@ -38,6 +38,26 @@ def main():
 
 
 
+    df_science = pd.DataFrame({'num' : [],
+                               'profit_deal' : [],
+                               'time_open' : [],
+                               'price_open' : [],
+                               'position_open' : [],
+                               'slope_open' : [],
+                               'price_min' : [],
+                               'price_max' : [],
+                               'min_mean' : [],
+                               'max_mean' : [],
+                               'time_close' : [],
+                               'price_close' : [],
+                               'position_close' : [],
+                               'slope_close' : [],
+                               'profit' : []})
+
+    df_science = df_science.set_index('num')
+
+
+
     # Добавлення колонок вершин high i low, якщо спрацювали відповідні індикатори
     lend = len(prepared_df)                                         # Змінна кількості строк у датафреймі
     prepared_df['hcc'] = [None] * lend                              # Додавання колонок вершин і впадин
@@ -109,14 +129,13 @@ def main():
                 #Long
                 if prepared_df['position_in_channel'][i-1] < 0.4:                   # Якщо позиція в каналі менше 0.5 (можна змінювати)...
                     if prepared_df['slope'][i-1] > 20:                             # ...та якщо кут нахилу менше -20 (тут є питання ->)
-                        # -> .. як я розумію, лонг відкривається, якщо позиція в нижній частині каналу, ок
-                        # але, чому від'ємний кут нахилу? тренд має починати рости, і ми заходимо..
+
                         prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]       # В колонку відкриття записується дана свічка
                         proffit_array = copy.copy(eth_proffit_array)                # В proffit_array записується список профітних кроків
                         position = 10                                               # Відкривається позиція 10 в лонг
                         open_price = prepared_df['close'][i]                        # Запис змінної відкриття
                         stop_prise = prepared_df['close'][i]*0.99                   # Запис змінної стоплос
-        if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
+            if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.6:
                     if prepared_df['slope'][i - 1] < -20:
