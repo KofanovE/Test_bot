@@ -145,7 +145,7 @@ def main():
                         df_science[num]['slope_open'] = prepared_df['slope'][i-1]
                         df_science[num]['price_min'] = prepared_df['close'][i]
                         df_science[num]['price_max'] = prepared_df['close'][i]
-                        
+
 
 
             if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
