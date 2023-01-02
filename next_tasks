@@ -3,4 +3,6 @@
 3. Adding date of BTC and setting it in total statistic date.
 4. Adding trailing stop.
 5. Comment all code.
-6. Adding statistical data of all kinds of strategies with visualization.
+6. Adding statistical data of all kinds of strategies.
+7. Create script for analyzing statistical data and visualization of results.
+8. Add column with max loss in csv with statistical data.

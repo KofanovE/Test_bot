@@ -59,7 +59,7 @@ def main():
     max_arr = []
 
     sl_percent = 0.01
-    slope = 20
+    slope = 25
     chanel_dif = 0.1
 
 
@@ -178,13 +178,10 @@ def main():
                         df_science.at[num, 'price_max'] = prepared_df['close'][i]
                         df_science.at[num, 'profit'] = 0
 
-
-
-
             if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.5 + chanel_dif:
-                    if prepared_df['slope'][i - 1] < -slope:
+                    if prepared_df['slope'][i-1] < -slope:
                         prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]
                         proffit_array = copy.copy(eth_proffit_array)
                         position = -10
@@ -201,7 +198,7 @@ def main():
                         df_science.at[num, 'price_max'] = prepared_df['close'][i]
                         df_science.at[num, 'profit'] = 0
 
-    # print(prepared_df)
+
     df_science = df_science.fillna(0)
     df_science['time_open'] = [datetime.fromtimestamp(d/1000) if d != 0 else 0 for d in df_science["time_open"]]
     df_science['time_close'] = [datetime.fromtimestamp(d/1000) if d != 0 else 0 for d in df_science["time_close"]]
@@ -221,7 +218,7 @@ def main():
     df_science.at[0, 'earn'] = deal
 
     df_science.to_csv('statistical_result.csv', encoding='utf-8')
-    print(df_science)
+    # print(df_science)
 
 
 
