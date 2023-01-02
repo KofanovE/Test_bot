@@ -166,6 +166,7 @@ def main():
                         proffit_array = copy.copy(eth_proffit_array)                # В proffit_array записується список профітних кроків
                         position = 10                                               # Відкривається позиція 10 в лонг
                         open_price = prepared_df['close'][i]                        # Запис змінної відкриття
+<<<<<<< HEAD
                         stop_prise = prepared_df['close'][i] * (1 - sl_percent)     # Запис змінної стоплос
 
 
@@ -180,6 +181,9 @@ def main():
 
 
 
+=======
+
+>>>>>>> master
             if prepared_df['hcc'][i - 1] != None:                                       # Все теж саме, але,якщо в стовпці "вершина" відкрита позиція
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.5 + chanel_dif:
