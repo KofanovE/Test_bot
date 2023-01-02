@@ -6,6 +6,7 @@ import pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from datetime import datetime
 
 from scipy.stats import trim_mean
 from Indicators import *
@@ -115,6 +116,7 @@ def main():
                         position = position - contracts                                     # Від позиції віднімається поточний профітний крок
                         deal += (prepared_df['close'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
                         del proffit_array[0]                                                # Видалення першого досягнутого профітного кроку
+
                         df_science.at[num, 'profit'] += contracts
                         df_science.at[num, 'profit_deal'] = True
 
@@ -135,6 +137,7 @@ def main():
                         position = position + contracts
                         deal += (open_price - prepared_df['close'][i]) * contracts
                         del proffit_array[0]
+
                         df_science.at[num, 'profit'] += contracts
                         df_science.at[num, 'profit_deal'] = True
 
@@ -144,8 +147,8 @@ def main():
                 df_science.at[num, 'price_close'] = prepared_df['close'][i]
                 df_science.at[num, 'position_close'] = prepared_df['position_in_channel'][i]
                 df_science.at[num, 'slope_close'] = prepared_df['slope'][i]
-                df_science.at[num, 'min_mean'] = trim_mean(min_arr, 0.1)
-                df_science.at[num, 'max_mean'] = trim_mean(max_arr, 0.1)
+                df_science.at[num, 'min_mean'] = np.mean(min_arr)
+                df_science.at[num, 'max_mean'] = np.mean(max_arr)
                 num += 1
 
 
@@ -190,10 +193,15 @@ def main():
                         df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
                         df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
                         df_science.at[num, 'price_min'] = prepared_df['close'][i]
-                        df_science.at[num, 'price_max'] = 0
+                        df_science.at[num, 'price_max'] = prepared_df['close'][i]
+                        df_science.at[num, 'profit'] = 0
 
     # print(prepared_df)
+    df_science = df_science.fillna(0)
+    df_science['time_open'] = [datetime.fromtimestamp(d/1000) if d != 0 else 0 for d in df_science["time_open"]]
+    df_science['time_close'] = [datetime.fromtimestamp(d/1000) if d != 0 else 0 for d in df_science["time_close"]]
     print(df_science)
+
 
 
     # prepared_df[0:100][['slope']].plot()

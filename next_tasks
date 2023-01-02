@@ -1,5 +1,7 @@
 +  1. Add mechanism of getting data from all csv files from folder.
 2. Adding file with csv statistic with all settings of strategy variables.
+    a. adding in statistical file columns with strategy, amounts of profitable and not profitable deals, result earn
+    b. next step - adding statistic of all kinds of strategies with visualization
 3. Adding date of BTC and setting it in total statistic date.
 4. Adding trailing stop.
 5. Comment all code.
