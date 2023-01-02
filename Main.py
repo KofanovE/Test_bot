@@ -59,7 +59,7 @@ def main():
     max_arr = []
 
     sl_percent = 0.01
-    slope = 25
+    slope = 35
     chanel_dif = 0.1
 
 
@@ -107,7 +107,7 @@ def main():
             #long
             if prepared_df['low'][i] < stop_prise:            # Якщо актуальний прайс менше межі стоплосу, то стоп-лос
                 #stop_loss
-                deal -= (open_price-prepared_df['close'][i])*abs(position) # Визначення величини збитку: відкриття-закриття
+                deal -= (open_price-prepared_df['low'][i])*abs(position) # Визначення величини збитку: відкриття-закриття
                 position = 0                                          # Закриття позиції
                 prepared_df.at[i, 'deal_c'] = prepared_df['close'][i] # запис у колонку закритих позицій
             else:                                                   # Якщо актуальний прайс не менше межі стоплосу, то
@@ -118,7 +118,7 @@ def main():
                     if prepared_df['high'][i] > open_price + delta:                        # Якщо поточна ціна більше ціни відкриття + поточний профітний крок ціни delta
                         prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]               # Запис ціни неповного закриття поточного профітного кроку
                         position = position - contracts                                     # Від позиції віднімається поточний профітний крок
-                        deal += (prepared_df['close'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
+                        deal += (prepared_df['high'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
                         del proffit_array[0]                                                # Видалення першого досягнутого профітного кроку
 
                         df_science.at[num, 'profit'] += contracts
@@ -128,7 +128,7 @@ def main():
             #short
             if prepared_df['high'][i] > stop_prise:
                 #stop loss
-                deal -= (prepared_df['close'][i] - open_price)*abs(position)
+                deal -= (prepared_df['high'][i] - open_price)*abs(position)
                 position = 0
                 prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
             else:
@@ -139,7 +139,7 @@ def main():
                     if prepared_df['low'][i] < open_price - delta:
                         prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
                         position = position + contracts
-                        deal += (open_price - prepared_df['close'][i]) * contracts
+                        deal += (open_price - prepared_df['low'][i]) * contracts
                         del proffit_array[0]
 
                         df_science.at[num, 'profit'] += contracts
