@@ -52,7 +52,8 @@ def main():
                                'price_close' : [],
                                'position_close' : [],
                                'slope_close' : [],
-                               'profit' : []})
+                               'profit' : [],
+                               'earn' : []})
 
     num = 0                                                          # Змінна номеру строки в дослідницькому датафреймі
     min_arr = []
@@ -153,6 +154,7 @@ def main():
                 df_science.at[num, 'slope_close'] = prepared_df['slope'][i]
                 df_science.at[num, 'min_mean'] = np.mean(min_arr)
                 df_science.at[num, 'max_mean'] = np.mean(max_arr)
+                df_science.at[num, 'earn'] = round(deal, 2)
                 num += 1
 
 
@@ -214,8 +216,7 @@ def main():
     df_science.at[0, 'amount_deals'] = len(df_science)
     df_science['amt_prof_deals'] = [None] * len(df_science)
     df_science.at[0, 'amt_prof_deals'] = len(df_science[df_science['profit_deal'] == True])
-    df_science['earn'] = [None] * len(df_science)
-    df_science.at[0, 'earn'] = deal
+
 
     df_science.to_csv('statistical_result.csv', encoding='utf-8')
     # print(df_science)
