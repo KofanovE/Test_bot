@@ -40,26 +40,28 @@ def main():
 
 
     df_science = pd.DataFrame({'profit_deal' : [],                   # створення дослідницького датафрейму
+                               'direction' : [],
                                'time_open' : [],
+                               'time_close': [],
                                'price_open' : [],
+                               'price_close': [],
                                'position_open' : [],
+                               'position_close': [],
                                'slope_open' : [],
+                               'slope_close': [],
                                'price_min' : [],
                                'price_max' : [],
                                'min_mean' : [],
                                'max_mean' : [],
-                               'time_close' : [],
-                               'price_close' : [],
-                               'position_close' : [],
-                               'slope_close' : [],
                                'profit' : [],
-                               'earn' : []})
+                               'earn' : [],
+                               'width_chanel' : []})
 
     num = 0                                                          # Змінна номеру строки в дослідницькому датафреймі
     min_arr = []
     max_arr = []
 
-    sl_percent = 0.01
+    sl_percent = 0.003
     slope = 35
     chanel_dif = 0.1
 
@@ -95,6 +97,7 @@ def main():
     for i in range(4, lend-1):                                  # Для кожної строки датафрейму, починаючи з 4-ї
         prepared_df.at[i, 'earn'] = deal                        # ініціалізація прибутку
 
+
         if position != 0:
             min_arr.append(prepared_df['low'][i])
             max_arr.append(prepared_df['high'][i])
@@ -110,14 +113,14 @@ def main():
                 #stop_loss
                 deal -= (open_price-prepared_df['low'][i])*abs(position) # Визначення величини збитку: відкриття-закриття
                 position = 0                                          # Закриття позиції
-                prepared_df.at[i, 'deal_c'] = prepared_df['close'][i] # запис у колонку закритих позицій
+                prepared_df.at[i, 'deal_c'] = prepared_df['low'][i] # запис у колонку закритих позицій
             else:                                                   # Якщо актуальний прайс не менше межі стоплосу, то
                 temp_arr = copy.copy(proffit_array)                 # Копіювання списку proffit_array
                 for j in range(0, len(temp_arr) - 1):               # Для кожного шагу ціни в temp_arr
                     delta = temp_arr[j][0]                          # Поточний профітний крок ціни delta
                     contracts = temp_arr[j][1]                      # Поточний профітний крок позиції
                     if prepared_df['high'][i] > open_price + delta:                        # Якщо поточна ціна більше ціни відкриття + поточний профітний крок ціни delta
-                        prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]               # Запис ціни неповного закриття поточного профітного кроку
+                        prepared_df.at[i, 'deal_c'] = prepared_df['high'][i]               # Запис ціни неповного закриття поточного профітного кроку
                         position = position - contracts                                     # Від позиції віднімається поточний профітний крок
                         deal += (prepared_df['high'][i] - open_price)*contracts            # До прибутку добавляється різниця в ціні * на величину закритої профітної позиції
                         del proffit_array[0]                                                # Видалення першого досягнутого профітного кроку
@@ -125,20 +128,30 @@ def main():
                         df_science.at[num, 'profit'] += contracts
                         df_science.at[num, 'profit_deal'] = True
 
+            if position == 0:
+                df_science.at[num, 'time_close'] = prepared_df['date'][i]
+                df_science.at[num, 'price_close'] = prepared_df['close'][i]
+                df_science.at[num, 'position_close'] = prepared_df['position_in_channel'][i]
+                df_science.at[num, 'slope_close'] = prepared_df['slope'][i]
+                df_science.at[num, 'min_mean'] = np.mean(min_arr)
+                df_science.at[num, 'max_mean'] = np.mean(max_arr)
+                df_science.at[num, 'earn'] = round(deal, 2)
+                num += 1
+
         elif position < 0:                                                                  # Все теж саме, але, коли відкита позиція в шорт
             #short
             if prepared_df['high'][i] > stop_prise:
                 #stop loss
                 deal -= (prepared_df['high'][i] - open_price)*abs(position)
                 position = 0
-                prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
+                prepared_df.at[i, 'deal_c'] = prepared_df['high'][i]
             else:
                 temp_arr = copy.copy(proffit_array)
                 for j in range(0, len(temp_arr)-1):
                     delta = temp_arr[j][0]
                     contracts = temp_arr[j][1]
                     if prepared_df['low'][i] < open_price - delta:
-                        prepared_df.at[i, 'deal_c'] = prepared_df['close'][i]
+                        prepared_df.at[i, 'deal_c'] = prepared_df['low'][i]
                         position = position + contracts
                         deal += (open_price - prepared_df['low'][i]) * contracts
                         del proffit_array[0]
@@ -160,20 +173,25 @@ def main():
 
 
         else:                                                                       # Якщо відкритої позиції не знайдено
-            if prepared_df['lcc'][i-1] != None:                                     # Якщо на даній свічі в стовпці "впадина" відкрита позиція
+            if prepared_df['lcc'][i - 1] != None or prepared_df['hcc'][i - 1] != None:
+                df_science.at[num, 'width_chanel'] = prepared_df['chanel_max'][i] - prepared_df['chanel_min'][i]
+
+
+            if prepared_df['lcc'][i - 1] != None:                                     # Якщо на даній свічі в стовпці "впадина" відкрита позиція
                 #Long
                 if prepared_df['position_in_channel'][i-1] < 0.5 - chanel_dif:      # Якщо позиція в каналі менше 0.5 (можна змінювати)...
                     if prepared_df['slope'][i-1] > slope:                           # ...та якщо кут нахилу менше -20 (тут є питання ->)
-                        prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]       # В колонку відкриття записується дана свічка
+                        prepared_df.at[i, 'deal_o'] = prepared_df['close'][i-1]       # В колонку відкриття записується дана свічка
                         proffit_array = copy.copy(eth_proffit_array)                # В proffit_array записується список профітних кроків
                         position = 10                                               # Відкривається позиція 10 в лонг
-                        open_price = prepared_df['close'][i]                        # Запис змінної відкриття
-                        stop_prise = prepared_df['close'][i] * (1 - sl_percent)     # Запис змінної стоплос
+                        open_price = prepared_df['close'][i-1]                        # Запис змінної відкриття
+                        stop_prise = prepared_df['close'][i-1] * (1 - sl_percent)     # Запис змінної стоплос
 
 
                         df_science.at[num, 'profit_deal'] = False
-                        df_science.at[num, 'time_open'] = prepared_df['date'][i]
-                        df_science.at[num, 'price_open'] = prepared_df['close'][i]
+                        df_science.at[num, 'direction'] = "long"
+                        df_science.at[num, 'time_open'] = prepared_df['date'][i-1]
+                        df_science.at[num, 'price_open'] = prepared_df['close'][i-1]
                         df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
                         df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
                         df_science.at[num, 'price_min'] = prepared_df['close'][i]
@@ -184,16 +202,17 @@ def main():
                 # Short
                 if prepared_df['position_in_channel'][i-1] > 0.5 + chanel_dif:
                     if prepared_df['slope'][i-1] < -slope:
-                        prepared_df.at[i, 'deal_o'] = prepared_df['close'][i]
+                        prepared_df.at[i, 'deal_o'] = prepared_df['close'][i-1]
                         proffit_array = copy.copy(eth_proffit_array)
                         position = -10
-                        open_price = prepared_df['close'][i]
-                        stop_prise = prepared_df['close'][i] * (1 + sl_percent)
+                        open_price = prepared_df['close'][i-1]
+                        stop_prise = prepared_df['close'][i-1] * (1 + sl_percent)
 
 
                         df_science.at[num, 'profit_deal'] = False
-                        df_science.at[num, 'time_open'] = prepared_df['date'][i]
-                        df_science.at[num, 'price_open'] = prepared_df['close'][i]
+                        df_science.at[num, 'direction'] = "short"
+                        df_science.at[num, 'time_open'] = prepared_df['date'][i-1]
+                        df_science.at[num, 'price_open'] = prepared_df['close'][i-1]
                         df_science.at[num, 'position_open'] = prepared_df['position_in_channel'][i-1]
                         df_science.at[num, 'slope_open'] = prepared_df['slope'][i-1]
                         df_science.at[num, 'price_min'] = prepared_df['close'][i]

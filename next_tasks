@@ -6,3 +6,4 @@
 6. Adding statistical data of all kinds of strategies.
 7. Create script for analyzing statistical data and visualization of results.
 8. Add column with max loss in csv with statistical data.
+9. Add mechanism of filtering accumulation period
